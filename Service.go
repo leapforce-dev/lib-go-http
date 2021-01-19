@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 
 	errortools "github.com/leapforce-libraries/go_errortools"
 	utilities "github.com/leapforce-libraries/go_utilities"
@@ -157,30 +156,4 @@ func (service *Service) put(requestConfig *RequestConfig) (*http.Request, *http.
 
 func (service *Service) delete(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
 	return service.HTTPRequest(http.MethodDelete, requestConfig)
-}
-
-func unmarshalError(response *http.Response, errorModel interface{}) *errortools.Error {
-	if response == nil {
-		return nil
-	}
-	if reflect.TypeOf(errorModel).Kind() != reflect.Ptr {
-		return errortools.ErrorMessage("Type of errorModel must be a pointer.")
-	}
-	if reflect.ValueOf(errorModel).IsNil() {
-		return nil
-	}
-
-	defer response.Body.Close()
-
-	b, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return errortools.ErrorMessage(err)
-	}
-
-	err = json.Unmarshal(b, &errorModel)
-	if err != nil {
-		return errortools.ErrorMessage(err)
-	}
-
-	return nil
 }
