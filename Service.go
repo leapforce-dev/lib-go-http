@@ -56,7 +56,7 @@ type RequestConfig struct {
 	NonDefaultHeaders *http.Header
 }
 
-func (service *Service) httpRequest(httpMethod string, requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
+func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
 	e := new(errortools.Error)
 
 	request, err := func() (*http.Request, error) {
@@ -143,19 +143,19 @@ func (service *Service) httpRequest(httpMethod string, requestConfig *RequestCon
 }
 
 func (service *Service) get(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
-	return service.httpRequest(http.MethodGet, requestConfig)
+	return service.HTTPRequest(http.MethodGet, requestConfig)
 }
 
 func (service *Service) post(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
-	return service.httpRequest(http.MethodPost, requestConfig)
+	return service.HTTPRequest(http.MethodPost, requestConfig)
 }
 
 func (service *Service) put(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
-	return service.httpRequest(http.MethodPut, requestConfig)
+	return service.HTTPRequest(http.MethodPut, requestConfig)
 }
 
 func (service *Service) delete(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
-	return service.httpRequest(http.MethodDelete, requestConfig)
+	return service.HTTPRequest(http.MethodDelete, requestConfig)
 }
 
 func unmarshalError(response *http.Response, errorModel interface{}) *errortools.Error {
