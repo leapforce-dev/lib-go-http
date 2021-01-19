@@ -107,35 +107,36 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 
 			e.SetMessage(fmt.Sprintf("Server returned statuscode %v", response.StatusCode))
 		}
-	}
 
-	if e != nil {
-		if response != nil {
+		if response.Body != nil {
 
 			defer response.Body.Close()
 
 			b, err := ioutil.ReadAll(response.Body)
-			if err == nil {
-				e.SetMessage(string(b))
+			if err != nil {
+				e.SetMessage(err)
+				return request, response, e
 			}
-		}
 
-		return request, response, e
-	}
+			if e != nil {
+				if !utilities.IsNil(requestConfig.ErrorModel) {
+					// try to unmarshal to ErrorModel
+					errError := json.Unmarshal(b, &requestConfig.ErrorModel)
+					if errError != nil {
+						e.SetMessage(string(b))
+					}
+				}
 
-	if !utilities.IsNil(requestConfig.ResponseModel) {
-		defer response.Body.Close()
+				return request, response, e
+			}
 
-		b, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			e.SetMessage(err)
-			return request, response, e
-		}
-
-		err = json.Unmarshal(b, &requestConfig.ResponseModel)
-		if err != nil {
-			e.SetMessage(err)
-			return request, response, e
+			if !utilities.IsNil(requestConfig.ResponseModel) {
+				err = json.Unmarshal(b, &requestConfig.ResponseModel)
+				if err != nil {
+					e.SetMessage(err)
+					return request, response, e
+				}
+			}
 		}
 	}
 
