@@ -123,7 +123,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 		return request, response, e
 	}
 
-	if utilities.IsNil(requestConfig.ResponseModel) {
+	if !utilities.IsNil(requestConfig.ResponseModel) {
 		defer response.Body.Close()
 
 		b, err := ioutil.ReadAll(response.Body)
