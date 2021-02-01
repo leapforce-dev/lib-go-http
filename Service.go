@@ -23,11 +23,18 @@ type Service struct {
 }
 
 type ServiceConfig struct {
+	HTTPClient            *http.Client
 	MaxRetries            *uint
 	SecondsBetweenRetries *uint32
 }
 
 func NewService(requestConfig ServiceConfig) *Service {
+	httpClient := http.Client{}
+
+	if requestConfig.HTTPClient != nil {
+		httpClient = *requestConfig.HTTPClient
+	}
+
 	maxRetries := DefaultMaxRetries
 
 	if requestConfig.MaxRetries != nil {
@@ -41,7 +48,7 @@ func NewService(requestConfig ServiceConfig) *Service {
 	}
 
 	return &Service{
-		client:                http.Client{},
+		client:                httpClient,
 		maxRetries:            maxRetries,
 		secondsBetweenRetries: secondsBetweenRetries,
 	}
