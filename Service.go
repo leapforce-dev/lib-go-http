@@ -119,20 +119,14 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 
 	// Send out the HTTP request
 	response, e := utilities.DoWithRetry(&service.client, request, service.maxRetries, service.secondsBetweenRetries)
-	if e == nil {
-		e = new(errortools.Error)
-	}
-	e.SetRequest(request)
-	e.SetResponse(response)
 
 	if response != nil {
 		if response.StatusCode < 200 || response.StatusCode > 299 {
 			if e == nil {
 				e = new(errortools.Error)
-				e.SetRequest(request)
-				e.SetResponse(response)
 			}
-
+			e.SetRequest(request)
+			e.SetResponse(response)
 			e.SetMessage(fmt.Sprintf("Server returned statuscode %v", response.StatusCode))
 		}
 
@@ -142,6 +136,11 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 
 			b, err := ioutil.ReadAll(response.Body)
 			if err != nil {
+				if e == nil {
+					e = new(errortools.Error)
+				}
+				e.SetRequest(request)
+				e.SetResponse(response)
 				e.SetMessage(err)
 				return request, response, e
 			}
@@ -151,7 +150,9 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 					// try to unmarshal to ErrorModel
 					errError := json.Unmarshal(b, &requestConfig.ErrorModel)
 					if errError != nil {
-						e.SetMessage(string(b))
+						e.SetRequest(request)
+						e.SetResponse(response)
+						e.SetMessage(errError)
 					}
 				}
 
@@ -161,6 +162,11 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			if !utilities.IsNil(requestConfig.ResponseModel) {
 				err = json.Unmarshal(b, &requestConfig.ResponseModel)
 				if err != nil {
+					if e == nil {
+						e = new(errortools.Error)
+					}
+					e.SetRequest(request)
+					e.SetResponse(response)
 					e.SetMessage(err)
 					return request, response, e
 				}
