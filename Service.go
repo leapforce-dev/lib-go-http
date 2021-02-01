@@ -3,9 +3,11 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	errortools "github.com/leapforce-libraries/go_errortools"
 	utilities "github.com/leapforce-libraries/go_utilities"
@@ -55,11 +57,12 @@ func NewService(requestConfig ServiceConfig) *Service {
 }
 
 type RequestConfig struct {
-	URL               string
-	BodyModel         interface{}
-	ResponseModel     interface{}
-	ErrorModel        interface{}
-	NonDefaultHeaders *http.Header
+	URL                string
+	BodyModel          interface{}
+	ResponseModel      interface{}
+	ErrorModel         interface{}
+	NonDefaultHeaders  *http.Header
+	XWWWFormURLEncoded *bool
 }
 
 func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
@@ -68,14 +71,27 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 	request, err := func() (*http.Request, error) {
 		if utilities.IsNil(requestConfig.BodyModel) {
 			return http.NewRequest(httpMethod, requestConfig.URL, nil)
-		} else {
-			b, err := json.Marshal(requestConfig.BodyModel)
-			if err != nil {
-				return nil, err
-			}
-
-			return http.NewRequest(httpMethod, requestConfig.URL, bytes.NewBuffer(b))
 		}
+
+		if requestConfig.XWWWFormURLEncoded != nil {
+			if *requestConfig.XWWWFormURLEncoded {
+				tag := "json"
+				url, e := utilities.StructToURL(&requestConfig.BodyModel, &tag)
+				if e != nil {
+					return nil, errors.New(e.Message())
+				}
+
+				return http.NewRequest(httpMethod, requestConfig.URL, strings.NewReader(*url))
+			}
+		}
+
+		b, err := json.Marshal(requestConfig.BodyModel)
+		if err != nil {
+			return nil, err
+		}
+
+		return http.NewRequest(httpMethod, requestConfig.URL, bytes.NewBuffer(b))
+
 	}()
 
 	e.SetRequest(request)
