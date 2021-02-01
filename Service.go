@@ -119,6 +119,12 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 
 	// Send out the HTTP request
 	response, e := utilities.DoWithRetry(&service.client, request, service.maxRetries, service.secondsBetweenRetries)
+	if e == nil {
+		e = new(errortools.Error)
+	}
+	e.SetRequest(request)
+	e.SetResponse(response)
+
 	if response != nil {
 		if response.StatusCode < 200 || response.StatusCode > 299 {
 			if e == nil {
