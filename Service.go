@@ -150,9 +150,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 					// try to unmarshal to ErrorModel
 					errError := json.Unmarshal(b, &requestConfig.ErrorModel)
 					if errError != nil {
-						e.SetRequest(request)
-						e.SetResponse(response)
-						e.SetMessage(errError)
+						e.SetExtra("response_message", string(b))
 					}
 				}
 
