@@ -13,21 +13,12 @@ import (
 	utilities "github.com/leapforce-libraries/go_utilities"
 )
 
-const (
-	DefaultMaxRetries            uint   = 0
-	DefaultSecondsBetweenRetries uint32 = 3
-)
-
 type Service struct {
-	client                http.Client
-	maxRetries            uint
-	secondsBetweenRetries uint32
+	client http.Client
 }
 
 type ServiceConfig struct {
-	HTTPClient            *http.Client
-	MaxRetries            *uint
-	SecondsBetweenRetries *uint32
+	HTTPClient *http.Client
 }
 
 func NewService(requestConfig ServiceConfig) *Service {
@@ -37,22 +28,8 @@ func NewService(requestConfig ServiceConfig) *Service {
 		httpClient = *requestConfig.HTTPClient
 	}
 
-	maxRetries := DefaultMaxRetries
-
-	if requestConfig.MaxRetries != nil {
-		maxRetries = *requestConfig.MaxRetries
-	}
-
-	secondsBetweenRetries := DefaultSecondsBetweenRetries
-
-	if requestConfig.SecondsBetweenRetries != nil {
-		secondsBetweenRetries = *requestConfig.SecondsBetweenRetries
-	}
-
 	return &Service{
-		client:                httpClient,
-		maxRetries:            maxRetries,
-		secondsBetweenRetries: secondsBetweenRetries,
+		client: httpClient,
 	}
 }
 
@@ -118,7 +95,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 	}
 
 	// Send out the HTTP request
-	response, e := utilities.DoWithRetry(&service.client, request, service.maxRetries, service.secondsBetweenRetries)
+	response, e := utilities.DoWithRetry(&service.client, request)
 
 	if response != nil {
 		if response.StatusCode < 200 || response.StatusCode > 299 {
