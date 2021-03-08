@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -13,26 +14,44 @@ import (
 	utilities "github.com/leapforce-libraries/go_utilities"
 )
 
+type Accept string
+
+const (
+	AcceptJSON Accept = "json"
+	AcceptXML  Accept = "xml"
+)
+
 type Service struct {
+	accept Accept
 	client http.Client
 }
 
 type ServiceConfig struct {
+	Accept     *Accept
 	HTTPClient *http.Client
 }
 
-func NewService(serviceConfig *ServiceConfig) *Service {
+func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
+	if serviceConfig == nil {
+		return nil, errortools.ErrorMessage("ServiceConfig must not be a nil pointer")
+	}
+
+	accept := AcceptJSON
 	httpClient := http.Client{}
 
 	if serviceConfig != nil {
+		if serviceConfig.Accept != nil {
+			accept = *serviceConfig.Accept
+		}
 		if serviceConfig.HTTPClient != nil {
 			httpClient = *serviceConfig.HTTPClient
 		}
 	}
 
 	return &Service{
+		accept: accept,
 		client: httpClient,
-	}
+	}, nil
 }
 
 type RequestConfig struct {
@@ -64,7 +83,14 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			}
 		}
 
-		b, err := json.Marshal(requestConfig.BodyModel)
+		var b []byte
+		var err error
+
+		if service.accept == AcceptXML {
+			b, err = xml.Marshal(requestConfig.BodyModel)
+		} else {
+			b, err = json.Marshal(requestConfig.BodyModel)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -81,9 +107,11 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 	}
 
 	// default headers
-	request.Header.Set("Accept", "application/json")
-	if !utilities.IsNil(requestConfig.BodyModel) {
-		request.Header.Set("Content-Type", "application/json")
+	if service.accept == AcceptJSON {
+		request.Header.Set("Accept", "application/json")
+		if !utilities.IsNil(requestConfig.BodyModel) {
+			request.Header.Set("Content-Type", "application/json")
+		}
 	}
 
 	// overrule with input headers
@@ -127,7 +155,12 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			if e != nil {
 				if !utilities.IsNil(requestConfig.ErrorModel) {
 					// try to unmarshal to ErrorModel
-					errError := json.Unmarshal(b, &requestConfig.ErrorModel)
+					var errError error
+					if service.accept == AcceptXML {
+						errError = xml.Unmarshal(b, &requestConfig.ErrorModel)
+					} else {
+						errError = json.Unmarshal(b, &requestConfig.ErrorModel)
+					}
 					if errError != nil {
 						e.SetExtra("response_message", string(b))
 					}
@@ -137,7 +170,12 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			}
 
 			if !utilities.IsNil(requestConfig.ResponseModel) {
-				err = json.Unmarshal(b, &requestConfig.ResponseModel)
+				var err error
+				if service.accept == AcceptXML {
+					err = xml.Unmarshal(b, &requestConfig.ResponseModel)
+				} else {
+					err = json.Unmarshal(b, &requestConfig.ResponseModel)
+				}
 				if err != nil {
 					if e == nil {
 						e = new(errortools.Error)
