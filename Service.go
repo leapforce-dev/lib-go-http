@@ -21,11 +21,13 @@ type ServiceConfig struct {
 	HTTPClient *http.Client
 }
 
-func NewService(requestConfig ServiceConfig) *Service {
+func NewService(serviceConfig *ServiceConfig) *Service {
 	httpClient := http.Client{}
 
-	if requestConfig.HTTPClient != nil {
-		httpClient = *requestConfig.HTTPClient
+	if serviceConfig != nil {
+		if serviceConfig.HTTPClient != nil {
+			httpClient = *serviceConfig.HTTPClient
+		}
 	}
 
 	return &Service{
