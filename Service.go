@@ -138,39 +138,40 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 		}
 
 		if response.Body != nil {
-
-			defer response.Body.Close()
-
-			b, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				if e == nil {
-					e = new(errortools.Error)
-				}
-				e.SetRequest(request)
-				e.SetResponse(response)
-				e.SetMessage(err)
-				return request, response, e
-			}
-
-			if e != nil {
-				if !utilities.IsNil(requestConfig.ErrorModel) {
-					// try to unmarshal to ErrorModel
-					var errError error
-					if service.accept == AcceptXML {
-						errError = xml.Unmarshal(b, &requestConfig.ErrorModel)
-					} else {
-						errError = json.Unmarshal(b, &requestConfig.ErrorModel)
-					}
-					if errError != nil {
-						e.SetExtra("response_message", string(b))
-					}
-				}
-
-				return request, response, e
-			}
-
 			if !utilities.IsNil(requestConfig.ResponseModel) {
-				var err error
+
+				defer response.Body.Close()
+
+				b, err := ioutil.ReadAll(response.Body)
+				if err != nil {
+					if e == nil {
+						e = new(errortools.Error)
+					}
+					e.SetRequest(request)
+					e.SetResponse(response)
+					e.SetMessage(err)
+					return request, response, e
+				}
+
+				if e != nil {
+					if !utilities.IsNil(requestConfig.ErrorModel) {
+						// try to unmarshal to ErrorModel
+						var errError error
+						if service.accept == AcceptXML {
+							errError = xml.Unmarshal(b, &requestConfig.ErrorModel)
+						} else {
+							errError = json.Unmarshal(b, &requestConfig.ErrorModel)
+						}
+						if errError != nil {
+							e.SetExtra("response_message", string(b))
+						}
+					}
+
+					return request, response, e
+				}
+
+				//if !utilities.IsNil(requestConfig.ResponseModel) {
+				//var err error
 				if service.accept == AcceptXML {
 					err = xml.Unmarshal(b, &requestConfig.ResponseModel)
 				} else {
@@ -185,6 +186,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 					e.SetMessage(err)
 					return request, response, e
 				}
+				//}
 			}
 		}
 	}
