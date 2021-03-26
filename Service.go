@@ -61,6 +61,7 @@ type RequestConfig struct {
 	ErrorModel         interface{}
 	NonDefaultHeaders  *http.Header
 	XWWWFormURLEncoded *bool
+	MaxRetries         *uint
 }
 
 func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
@@ -125,7 +126,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 	}
 
 	// Send out the HTTP request
-	response, e := utilities.DoWithRetry(&service.client, request)
+	response, e := utilities.DoWithRetry(&service.client, request, requestConfig.MaxRetries)
 
 	if response != nil {
 		if response.StatusCode < 200 || response.StatusCode > 299 {
