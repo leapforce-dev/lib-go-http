@@ -96,6 +96,8 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			return nil, err
 		}
 
+		fmt.Println(string(b))
+
 		return http.NewRequest(httpMethod, requestConfig.URL, bytes.NewBuffer(b))
 
 	}()
@@ -129,65 +131,64 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 	response, e := utilities.DoWithRetry(&service.client, request, requestConfig.MaxRetries)
 
 	if response != nil {
-		if response.StatusCode < 200 || response.StatusCode > 299 {
-			if e == nil {
+		if e == nil {
+			if response.StatusCode < 200 || response.StatusCode > 299 {
 				e = new(errortools.Error)
+				e.SetMessage(fmt.Sprintf("Server returned statuscode %v", response.StatusCode))
 			}
-			e.SetRequest(request)
-			e.SetResponse(response)
-			e.SetMessage(fmt.Sprintf("Server returned statuscode %v", response.StatusCode))
 		}
 
+		var b *[]byte
+
 		if response.Body != nil {
-			if !utilities.IsNil(requestConfig.ResponseModel) {
+			defer response.Body.Close()
 
-				defer response.Body.Close()
-
-				b, err := ioutil.ReadAll(response.Body)
-				if err != nil {
-					if e == nil {
-						e = new(errortools.Error)
-					}
-					e.SetRequest(request)
-					e.SetResponse(response)
-					e.SetMessage(err)
-					return request, response, e
+			_b, err := ioutil.ReadAll(response.Body)
+			if err != nil {
+				if e == nil {
+					e = new(errortools.Error)
 				}
+				e.SetMessage(err)
+			}
 
-				if e != nil {
-					if !utilities.IsNil(requestConfig.ErrorModel) {
-						// try to unmarshal to ErrorModel
-						var errError error
-						if service.accept == AcceptXML {
-							errError = xml.Unmarshal(b, &requestConfig.ErrorModel)
-						} else {
-							errError = json.Unmarshal(b, &requestConfig.ErrorModel)
-						}
-						if errError != nil {
-							e.SetExtra("response_message", string(b))
-						}
-					}
+			b = &_b
+		}
 
-					return request, response, e
-				}
+		if e != nil {
+			e.SetRequest(request)
+			e.SetResponse(response)
 
-				//if !utilities.IsNil(requestConfig.ResponseModel) {
-				//var err error
+			if b != nil && !utilities.IsNil(requestConfig.ErrorModel) {
+				// try to unmarshal to ErrorModel
+				var errError error
 				if service.accept == AcceptXML {
-					err = xml.Unmarshal(b, &requestConfig.ResponseModel)
+					errError = xml.Unmarshal(*b, &requestConfig.ErrorModel)
 				} else {
-					err = json.Unmarshal(b, &requestConfig.ResponseModel)
+					errError = json.Unmarshal(*b, &requestConfig.ErrorModel)
 				}
-				if err != nil {
-					if e == nil {
-						e = new(errortools.Error)
-					}
-					e.SetRequest(request)
-					e.SetResponse(response)
-					e.SetMessage(err)
-					return request, response, e
+				if errError != nil {
+					e.SetExtra("response_message", string(*b))
 				}
-				//}
+			}
+
+			return request, response, e
+		}
+
+		if b != nil && !utilities.IsNil(requestConfig.ResponseModel) {
+			if service.accept == AcceptXML {
+				err = xml.Unmarshal(*b, &requestConfig.ResponseModel)
+			} else {
+				err = json.Unmarshal(*b, &requestConfig.ResponseModel)
+			}
+			if err != nil {
+				if e == nil {
+					e = new(errortools.Error)
+				}
+				e.SetRequest(request)
+				e.SetResponse(response)
+				e.SetMessage(err)
+
+				return request, response, e
 			}
 		}
 	}
