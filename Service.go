@@ -96,8 +96,6 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			return nil, err
 		}
 
-		fmt.Println(string(b))
-
 		return http.NewRequest(httpMethod, requestConfig.URL, bytes.NewBuffer(b))
 
 	}()
