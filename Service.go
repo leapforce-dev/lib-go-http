@@ -22,8 +22,9 @@ const (
 )
 
 type Service struct {
-	accept Accept
-	client http.Client
+	accept       Accept
+	client       http.Client
+	requestCount int64
 }
 
 type ServiceConfig struct {
@@ -126,6 +127,8 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 	}
 
 	// Send out the HTTP request
+	service.requestCount++
+
 	response, e := utilities.DoWithRetry(&service.client, request, requestConfig.MaxRetries)
 
 	if response != nil {
@@ -208,4 +211,8 @@ func (service *Service) put(requestConfig *RequestConfig) (*http.Request, *http.
 
 func (service *Service) delete(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
 	return service.HTTPRequest(http.MethodDelete, requestConfig)
+}
+
+func (service *Service) RequestCount() int64 {
+	return service.requestCount
 }
