@@ -75,6 +75,14 @@ func (requestConfig *RequestConfig) FullURL() string {
 	return fmt.Sprintf("%s?%s", requestConfig.URL, requestConfig.Parameters.Encode())
 }
 
+func (requestConfig *RequestConfig) SetParameter(key string, value string) {
+	if requestConfig.Parameters == nil {
+		requestConfig.Parameters = &url.Values{}
+	}
+
+	requestConfig.Parameters.Set(key, value)
+}
+
 func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
 	e := new(errortools.Error)
 
