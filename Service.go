@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
 	errortools "github.com/leapforce-libraries/go_errortools"
@@ -57,6 +58,7 @@ func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
 
 type RequestConfig struct {
 	URL                string
+	Parameters         *url.Values
 	BodyModel          interface{}
 	ResponseModel      interface{}
 	ErrorModel         interface{}
@@ -65,12 +67,20 @@ type RequestConfig struct {
 	MaxRetries         *uint
 }
 
+func (requestConfig *RequestConfig) FullURL() string {
+	if requestConfig.Parameters == nil {
+		return requestConfig.URL
+	}
+
+	return fmt.Sprintf("%s?%s", requestConfig.URL, requestConfig.Parameters.Encode())
+}
+
 func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
 	e := new(errortools.Error)
 
 	request, err := func() (*http.Request, error) {
 		if utilities.IsNil(requestConfig.BodyModel) {
-			return http.NewRequest(httpMethod, requestConfig.URL, nil)
+			return http.NewRequest(httpMethod, requestConfig.FullURL(), nil)
 		}
 
 		if requestConfig.XWWWFormURLEncoded != nil {
@@ -81,7 +91,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 					return nil, errors.New(e.Message())
 				}
 
-				return http.NewRequest(httpMethod, requestConfig.URL, strings.NewReader(*url))
+				return http.NewRequest(httpMethod, requestConfig.FullURL(), strings.NewReader(*url))
 			}
 		}
 
@@ -97,7 +107,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			return nil, err
 		}
 
-		return http.NewRequest(httpMethod, requestConfig.URL, bytes.NewBuffer(b))
+		return http.NewRequest(httpMethod, requestConfig.FullURL(), bytes.NewBuffer(b))
 
 	}()
 
