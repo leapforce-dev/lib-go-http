@@ -157,27 +157,16 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			}
 		}
 
-		var b *[]byte
-
-		if response.Body != nil {
-			defer response.Body.Close()
-
-			_b, err := ioutil.ReadAll(response.Body)
-			if err != nil {
-				if e == nil {
-					e = new(errortools.Error)
-				}
-				e.SetMessage(err)
-			}
-
-			b = &_b
-		}
-
 		if e != nil {
 			e.SetRequest(request)
 			e.SetResponse(response)
 
-			if b != nil && !utilities.IsNil(requestConfig.ErrorModel) {
+			if !utilities.IsNil(requestConfig.ErrorModel) {
+				b, e := responseBodyToBytes(response)
+				if e != nil {
+					return request, response, e
+				}
+
 				// try to unmarshal to ErrorModel
 				var errError error
 				if service.accept == AcceptXML {
@@ -193,7 +182,12 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			return request, response, e
 		}
 
-		if b != nil && !utilities.IsNil(requestConfig.ResponseModel) {
+		if !utilities.IsNil(requestConfig.ResponseModel) {
+			b, e := responseBodyToBytes(response)
+			if e != nil {
+				return request, response, e
+			}
+
 			if service.accept == AcceptXML {
 				err = xml.Unmarshal(*b, &requestConfig.ResponseModel)
 			} else {
@@ -215,6 +209,24 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 	return request, response, nil
 }
 
+func responseBodyToBytes(response *http.Response) (*[]byte, *errortools.Error) {
+	if response == nil {
+		return nil, nil
+	}
+
+	if response.Body == nil {
+		return nil, nil
+	}
+	defer response.Body.Close()
+
+	b, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, errortools.ErrorMessage(err)
+	}
+
+	return &b, nil
+}
+
 func (service *Service) get(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
 	return service.HTTPRequest(http.MethodGet, requestConfig)
 }
@@ -233,8 +245,4 @@ func (service *Service) delete(requestConfig *RequestConfig) (*http.Request, *ht
 
 func (service *Service) RequestCount() int64 {
 	return service.requestCount
-}
-
-func (service *Service) ResetRequestCount() {
-	service.requestCount = 0
 }
