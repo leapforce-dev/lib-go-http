@@ -162,9 +162,9 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			e.SetResponse(response)
 
 			if !utilities.IsNil(requestConfig.ErrorModel) {
-				b, e := responseBodyToBytes(response)
-				if e != nil {
-					return request, response, e
+				b, ee := responseBodyToBytes(response)
+				if ee != nil {
+					return request, response, ee
 				}
 
 				// try to unmarshal to ErrorModel
