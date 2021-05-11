@@ -246,3 +246,7 @@ func (service *Service) delete(requestConfig *RequestConfig) (*http.Request, *ht
 func (service *Service) RequestCount() int64 {
 	return service.requestCount
 }
+
+func (service *Service) ResetRequestCount() {
+	service.requestCount = 0
+}
