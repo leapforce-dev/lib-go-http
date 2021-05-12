@@ -145,6 +145,9 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 	}
 
 	// Send out the HTTP request
+	errortools.SetContext("http_url", request.URL)
+	defer errortools.RemoveContext("http_url")
+
 	service.requestCount++
 
 	response, e := utilities.DoWithRetry(&service.client, request, requestConfig.MaxRetries)
