@@ -116,6 +116,13 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			return nil, err
 		}
 
+		if ig.Debug() {
+			fmt.Printf("DEBUG - FullURL\n%s\n", requestConfig.FullURL())
+			fmt.Println("------------------------")
+			fmt.Printf("DEBUG - BodyModel\n%s\n", string(b))
+			fmt.Println("------------------------")
+		}
+
 		return http.NewRequest(httpMethod, requestConfig.FullURL(), bytes.NewBuffer(b))
 
 	}()
@@ -229,8 +236,9 @@ func responseBodyToBytes(response *http.Response) (*[]byte, *errortools.Error) {
 		return nil, errortools.ErrorMessage(err)
 	}
 
-	if ig.IsEnvironmentTest() {
-		fmt.Println(string(b))
+	if ig.Debug() {
+		fmt.Printf("DEBUG - ResponseBody\n%s\n", string(b))
+		fmt.Println("------------------------")
 	}
 
 	return &b, nil
