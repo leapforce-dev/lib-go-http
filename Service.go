@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	errortools "github.com/leapforce-libraries/go_errortools"
+	ig "github.com/leapforce-libraries/go_integration"
 	utilities "github.com/leapforce-libraries/go_utilities"
 )
 
@@ -226,6 +227,10 @@ func responseBodyToBytes(response *http.Response) (*[]byte, *errortools.Error) {
 	b, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, errortools.ErrorMessage(err)
+	}
+
+	if ig.IsEnvironmentTest() {
+		fmt.Println(string(b))
 	}
 
 	return &b, nil
