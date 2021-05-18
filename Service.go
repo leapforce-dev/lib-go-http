@@ -171,12 +171,16 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 
 	response, e := utilities.DoWithRetry(&service.client, request, requestConfig.MaxRetries)
 
-	fmt.Printf("DEBUG - Response\n%v\n", response)
-	fmt.Println("------------------------")
+	if ig.Debug() {
+		fmt.Printf("DEBUG - Response\n%v\n", response)
+		fmt.Println("------------------------")
+	}
 
 	if response != nil {
-		fmt.Printf("DEBUG - StatusCode\n%v\n", response.StatusCode)
-		fmt.Println("------------------------")
+		if ig.Debug() {
+			fmt.Printf("DEBUG - StatusCode\n%v\n", response.StatusCode)
+			fmt.Println("------------------------")
+		}
 
 		if e == nil {
 			if response.StatusCode < 200 || response.StatusCode > 299 {
