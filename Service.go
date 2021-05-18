@@ -121,6 +121,14 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			fmt.Println("------------------------")
 			fmt.Printf("DEBUG - BodyModel\n%s\n", string(b))
 			fmt.Println("------------------------")
+			if !utilities.IsNil(requestConfig.ResponseModel) {
+				fmt.Printf("DEBUG - ResponseModel\n%T\n", requestConfig.ResponseModel)
+				fmt.Println("------------------------")
+			}
+			if !utilities.IsNil(requestConfig.ErrorModel) {
+				fmt.Printf("DEBUG - ErrorModel\n%T\n", requestConfig.ErrorModel)
+				fmt.Println("------------------------")
+			}
 		}
 
 		return http.NewRequest(httpMethod, requestConfig.FullURL(), bytes.NewBuffer(b))
@@ -160,7 +168,13 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 
 	response, e := utilities.DoWithRetry(&service.client, request, requestConfig.MaxRetries)
 
+	fmt.Printf("DEBUG - Response\n%v\n", response)
+	fmt.Println("------------------------")
+
 	if response != nil {
+		fmt.Printf("DEBUG - StatusCode\n%v\n", response.StatusCode)
+		fmt.Println("------------------------")
+
 		if e == nil {
 			if response.StatusCode < 200 || response.StatusCode > 299 {
 				e = new(errortools.Error)
