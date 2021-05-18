@@ -169,6 +169,13 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 
 	service.requestCount++
 
+	if ig.Debug() {
+		fmt.Printf("DEBUG - Request\n%v\n", request)
+		fmt.Println("------------------------")
+		fmt.Printf("DEBUG - Client\n%v\n", service.client)
+		fmt.Println("------------------------")
+	}
+
 	response, e := utilities.DoWithRetry(&service.client, request, requestConfig.MaxRetries)
 
 	if ig.Debug() {
