@@ -87,6 +87,19 @@ func (requestConfig *RequestConfig) SetParameter(key string, value string) {
 func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
 	e := new(errortools.Error)
 
+	if ig.Debug() {
+		fmt.Printf("DEBUG - FullURL\n%s\n", requestConfig.FullURL())
+		fmt.Println("------------------------")
+		if !utilities.IsNil(requestConfig.ResponseModel) {
+			fmt.Printf("DEBUG - ResponseModel\n%T\n", requestConfig.ResponseModel)
+			fmt.Println("------------------------")
+		}
+		if !utilities.IsNil(requestConfig.ErrorModel) {
+			fmt.Printf("DEBUG - ErrorModel\n%T\n", requestConfig.ErrorModel)
+			fmt.Println("------------------------")
+		}
+	}
+
 	request, err := func() (*http.Request, error) {
 		if utilities.IsNil(requestConfig.BodyModel) {
 			return http.NewRequest(httpMethod, requestConfig.FullURL(), nil)
@@ -117,18 +130,8 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 		}
 
 		if ig.Debug() {
-			fmt.Printf("DEBUG - FullURL\n%s\n", requestConfig.FullURL())
-			fmt.Println("------------------------")
 			fmt.Printf("DEBUG - BodyModel\n%s\n", string(b))
 			fmt.Println("------------------------")
-			if !utilities.IsNil(requestConfig.ResponseModel) {
-				fmt.Printf("DEBUG - ResponseModel\n%T\n", requestConfig.ResponseModel)
-				fmt.Println("------------------------")
-			}
-			if !utilities.IsNil(requestConfig.ErrorModel) {
-				fmt.Printf("DEBUG - ErrorModel\n%T\n", requestConfig.ErrorModel)
-				fmt.Println("------------------------")
-			}
 		}
 
 		return http.NewRequest(httpMethod, requestConfig.FullURL(), bytes.NewBuffer(b))
