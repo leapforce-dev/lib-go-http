@@ -188,6 +188,10 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 		fmt.Println("------------------------")
 	}
 
+	if response == nil {
+		return request, nil, e
+	}
+
 	if response != nil {
 		if ig.Debug() {
 			fmt.Printf("DEBUG - StatusCode\n%v\n", response.StatusCode)
