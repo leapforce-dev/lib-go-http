@@ -264,6 +264,8 @@ func responseBodyToBytes(response *http.Response) (*[]byte, *errortools.Error) {
 	}
 
 	if response.Body == nil {
+		fmt.Println("DEBUG - ResponseBody is nil")
+		fmt.Println("------------------------")
 		return nil, nil
 	}
 	defer response.Body.Close()
