@@ -115,9 +115,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			body = *requestConfig.BodyRaw
 		} else if utilities.IsNil(requestConfig.BodyModel) {
 			return http.NewRequest(httpMethod, requestConfig.FullURL(), nil)
-		}
-
-		if service.accept == AcceptXML {
+		} else if service.accept == AcceptXML {
 			body, err = xml.Marshal(requestConfig.BodyModel)
 		} else {
 			body, err = json.Marshal(requestConfig.BodyModel)
