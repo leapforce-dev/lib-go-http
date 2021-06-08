@@ -139,7 +139,10 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 		}
 
 		if ig.Debug() {
-			if !utilities.IsNil(requestConfig.BodyModel){
+			if requestConfig.BodyRaw != nil
+				fmt.Printf("DEBUG - BodyRaw\nlength = %v, %v\n", len(*requestConfig.BodyRaw), len(body))
+				fmt.Println("------------------------")
+			} else if !utilities.IsNil(requestConfig.BodyModel){
 				fmt.Printf("DEBUG - BodyModel\n%s\n", string(body))
 				fmt.Println("------------------------")
 			}
