@@ -26,6 +26,7 @@ type Accept string
 const (
 	AcceptJSON Accept = "json"
 	AcceptXML  Accept = "xml"
+	AcceptRaw  Accept = "raw"
 )
 
 type Service struct {
@@ -66,6 +67,7 @@ type RequestConfig struct {
 	URL                string
 	Parameters         *url.Values
 	BodyModel          interface{}
+	BodyRaw            *[]byte
 	ResponseModel      interface{}
 	ErrorModel         interface{}
 	NonDefaultHeaders  *http.Header
@@ -106,8 +108,22 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 	}
 
 	request, err := func() (*http.Request, error) {
-		if utilities.IsNil(requestConfig.BodyModel) {
+		var body []byte
+		var err error
+
+		if requestConfig.BodyRaw != nil{
+			body = *requestConfig.BodyRaw
+		} else if utilities.IsNil(requestConfig.BodyModel) {
 			return http.NewRequest(httpMethod, requestConfig.FullURL(), nil)
+		}
+			
+		if service.accept == AcceptXML {
+			body, err = xml.Marshal(requestConfig.BodyModel)
+		} else {
+			body, err = json.Marshal(requestConfig.BodyModel)
+		}
+		if err != nil {
+			return nil, err
 		}
 
 		if requestConfig.XWWWFormURLEncoded != nil {
@@ -122,24 +138,14 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			}
 		}
 
-		var b []byte
-		var err error
-
-		if service.accept == AcceptXML {
-			b, err = xml.Marshal(requestConfig.BodyModel)
-		} else {
-			b, err = json.Marshal(requestConfig.BodyModel)
-		}
-		if err != nil {
-			return nil, err
-		}
-
 		if ig.Debug() {
-			fmt.Printf("DEBUG - BodyModel\n%s\n", string(b))
-			fmt.Println("------------------------")
+			if !utilities.IsNil(requestConfig.BodyModel){
+				fmt.Printf("DEBUG - BodyModel\n%s\n", string(body))
+				fmt.Println("------------------------")
+			}
 		}
 
-		return http.NewRequest(httpMethod, requestConfig.FullURL(), bytes.NewBuffer(b))
+		return http.NewRequest(httpMethod, requestConfig.FullURL(), bytes.NewBuffer(body))
 
 	}()
 
