@@ -111,12 +111,12 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 		var body []byte
 		var err error
 
-		if requestConfig.BodyRaw != nil{
+		if requestConfig.BodyRaw != nil {
 			body = *requestConfig.BodyRaw
 		} else if utilities.IsNil(requestConfig.BodyModel) {
 			return http.NewRequest(httpMethod, requestConfig.FullURL(), nil)
 		}
-			
+
 		if service.accept == AcceptXML {
 			body, err = xml.Marshal(requestConfig.BodyModel)
 		} else {
@@ -139,10 +139,10 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 		}
 
 		if ig.Debug() {
-			if requestConfig.BodyRaw != nil
+			if requestConfig.BodyRaw != nil {
 				fmt.Printf("DEBUG - BodyRaw\nlength = %v, %v\n", len(*requestConfig.BodyRaw), len(body))
 				fmt.Println("------------------------")
-			} else if !utilities.IsNil(requestConfig.BodyModel){
+			} else if !utilities.IsNil(requestConfig.BodyModel) {
 				fmt.Printf("DEBUG - BodyModel\n%s\n", string(body))
 				fmt.Println("------------------------")
 			}
