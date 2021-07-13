@@ -217,19 +217,16 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			e.SetResponse(response)
 
 			if !utilities.IsNil(requestConfig.ErrorModel) {
-				b, ee := responseBodyToBytes(response)
-				if ee != nil {
-					errortools.CaptureError(ee)
-				} else {
-					// try to unmarshal to ErrorModel
-					var errError error
+				// try to unmarshal to ErrorModel
+				b, errToBytes := responseBodyToBytes(response)
+				if errToBytes == nil {
+					var err2 error
 					if service.accept == AcceptXML {
-						errError = xml.Unmarshal(*b, &requestConfig.ErrorModel)
+						err2 = xml.Unmarshal(*b, &requestConfig.ErrorModel)
 					} else {
-						errError = json.Unmarshal(*b, &requestConfig.ErrorModel)
+						err2 = json.Unmarshal(*b, &requestConfig.ErrorModel)
 					}
-					if errError != nil {
-						errortools.CaptureError(errError)
+					if err2 != nil {
 						e.SetExtra("response_message", string(*b))
 					}
 				}
@@ -239,9 +236,10 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 		}
 
 		if !utilities.IsNil(requestConfig.ResponseModel) {
-			b, ee := responseBodyToBytes(response)
-			if ee != nil {
-				return request, response, ee
+			// try to unmarshal to ResponseModel
+			b, errToBytes := responseBodyToBytes(response)
+			if errToBytes != nil {
+				return request, response, errToBytes
 			}
 
 			if service.accept == AcceptXML {
