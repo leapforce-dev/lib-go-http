@@ -64,6 +64,7 @@ func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
 }
 
 type RequestConfig struct {
+	Method             string // not used yet
 	URL                string
 	Parameters         *url.Values
 	BodyModel          interface{}
