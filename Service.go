@@ -93,7 +93,7 @@ func (requestConfig *RequestConfig) SetParameter(key string, value string) {
 	requestConfig.Parameters.Set(key, value)
 }
 
-func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
+func (service *Service) HTTPRequest(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
 	e := new(errortools.Error)
 
 	if ig.Debug() {
@@ -116,7 +116,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 		if requestConfig.BodyRaw != nil {
 			body = *requestConfig.BodyRaw
 		} else if utilities.IsNil(requestConfig.BodyModel) {
-			return http.NewRequest(httpMethod, requestConfig.FullURL(), nil)
+			return http.NewRequest(requestConfig.Method, requestConfig.FullURL(), nil)
 		} else if service.accept == AcceptXML {
 			body, err = xml.Marshal(requestConfig.BodyModel)
 		} else {
@@ -134,7 +134,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 					return nil, errors.New(e.Message())
 				}
 
-				return http.NewRequest(httpMethod, requestConfig.FullURL(), strings.NewReader(*url))
+				return http.NewRequest(requestConfig.Method, requestConfig.FullURL(), strings.NewReader(*url))
 			}
 		}
 
@@ -148,7 +148,7 @@ func (service *Service) HTTPRequest(httpMethod string, requestConfig *RequestCon
 			}
 		}
 
-		return http.NewRequest(httpMethod, requestConfig.FullURL(), bytes.NewBuffer(body))
+		return http.NewRequest(requestConfig.Method, requestConfig.FullURL(), bytes.NewBuffer(body))
 
 	}()
 
@@ -288,22 +288,6 @@ func responseBodyToBytes(response *http.Response) (*[]byte, *errortools.Error) {
 	}
 
 	return &b, nil
-}
-
-func (service *Service) get(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
-	return service.HTTPRequest(http.MethodGet, requestConfig)
-}
-
-func (service *Service) post(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
-	return service.HTTPRequest(http.MethodPost, requestConfig)
-}
-
-func (service *Service) put(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
-	return service.HTTPRequest(http.MethodPut, requestConfig)
-}
-
-func (service *Service) delete(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
-	return service.HTTPRequest(http.MethodDelete, requestConfig)
 }
 
 func (service *Service) RequestCount() int64 {
