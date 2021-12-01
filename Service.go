@@ -322,8 +322,10 @@ func (service *Service) doWithRetry(client *http.Client, request *http.Request, 
 	}
 
 	for retry <= _maxRetries {
+		statusCode := 0
+
 		if retry > 0 {
-			fmt.Printf("Starting retry %v for %s %s\n", retry, request.Method, request.URL.String())
+			fmt.Printf("StatusCode: %v, starting retry %v for %s %s\n", statusCode, retry, request.Method, request.URL.String())
 			waitSeconds := math.Pow(2, float64(retry-1))
 			waitMilliseconds := int(rand.Float64() * 1000)
 			time.Sleep(time.Duration(waitSeconds)*time.Second + time.Duration(waitMilliseconds)*time.Millisecond)
@@ -341,29 +343,29 @@ func (service *Service) doWithRetry(client *http.Client, request *http.Request, 
 			}
 		}
 
-		statusCode := 0
 		if response != nil {
 			statusCode = response.StatusCode
 		}
 
-		if (statusCode == 500 || statusCode == 503) && retry < _maxRetries { // retry in case of status 500/503 (server error)
+		if ig.HTTPRetry(statusCode) && retry < _maxRetries { // retry in case of status 500/503 (server error)
 			retry++
-		} else {
-			if err == nil && (statusCode/100 == 4 || statusCode/100 == 5) {
-				err = fmt.Errorf("Server returned statuscode %v", statusCode)
-			}
-
-			if err != nil {
-				e := new(errortools.Error)
-				e.SetRequest(request)
-				e.SetResponse(response)
-				e.SetMessage(err.Error())
-
-				return response, e
-			}
-
-			return response, nil
+			continue
 		}
+
+		if err == nil && (statusCode/100 == 4 || statusCode/100 == 5) {
+			err = fmt.Errorf("Server returned statuscode %v", statusCode)
+		}
+
+		if err != nil {
+			e := new(errortools.Error)
+			e.SetRequest(request)
+			e.SetResponse(response)
+			e.SetMessage(err.Error())
+
+			return response, e
+		}
+
+		return response, nil
 	}
 
 	// should never reach this
