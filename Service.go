@@ -321,9 +321,9 @@ func (service *Service) doWithRetry(client *http.Client, request *http.Request, 
 		_maxRetries = *maxRetries
 	}
 
-	for retry <= _maxRetries {
-		statusCode := 0
+	statusCode := 0
 
+	for retry <= _maxRetries {
 		if retry > 0 {
 			fmt.Printf("StatusCode: %v, starting retry %v for %s %s\n", statusCode, retry, request.Method, request.URL.String())
 			waitSeconds := math.Pow(2, float64(retry-1))
@@ -345,9 +345,11 @@ func (service *Service) doWithRetry(client *http.Client, request *http.Request, 
 
 		if response != nil {
 			statusCode = response.StatusCode
+		} else {
+			statusCode = 0
 		}
 
-		if ig.HTTPRetry(statusCode) && retry < _maxRetries { // retry in case of status 500/503 (server error)
+		if ig.HTTPRetry(statusCode) && retry < _maxRetries {
 			retry++
 			continue
 		}
