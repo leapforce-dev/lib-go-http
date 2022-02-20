@@ -24,8 +24,8 @@ const defaultMaxRetries uint = 5
 type Accept string
 
 const (
-	AcceptJSON Accept = "json"
-	AcceptXML  Accept = "xml"
+	AcceptJson Accept = "json"
+	AcceptXml  Accept = "xml"
 	AcceptRaw  Accept = "raw"
 )
 
@@ -37,7 +37,7 @@ type Service struct {
 
 type ServiceConfig struct {
 	Accept     *Accept
-	HTTPClient *http.Client
+	HttpClient *http.Client
 }
 
 func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
@@ -45,15 +45,15 @@ func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
 		return nil, errortools.ErrorMessage("ServiceConfig must not be a nil pointer")
 	}
 
-	accept := AcceptJSON
+	accept := AcceptJson
 	httpClient := http.Client{}
 
 	if serviceConfig != nil {
 		if serviceConfig.Accept != nil {
 			accept = *serviceConfig.Accept
 		}
-		if serviceConfig.HTTPClient != nil {
-			httpClient = *serviceConfig.HTTPClient
+		if serviceConfig.HttpClient != nil {
+			httpClient = *serviceConfig.HttpClient
 		}
 	}
 
@@ -65,24 +65,24 @@ func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
 
 type RequestConfig struct {
 	Method             string // not used yet
-	RelativeURL        string
-	URL                string
+	RelativeUrl        string
+	Url                string
 	Parameters         *url.Values
 	BodyModel          interface{}
 	BodyRaw            *[]byte
 	ResponseModel      interface{}
 	ErrorModel         interface{}
 	NonDefaultHeaders  *http.Header
-	XWWWFormURLEncoded *bool
+	XWwwFormUrlEncoded *bool
 	MaxRetries         *uint
 }
 
-func (requestConfig *RequestConfig) FullURL() string {
+func (requestConfig *RequestConfig) FullUrl() string {
 	if requestConfig.Parameters == nil {
-		return requestConfig.URL
+		return requestConfig.Url
 	}
 
-	return fmt.Sprintf("%s?%s", requestConfig.URL, requestConfig.Parameters.Encode())
+	return fmt.Sprintf("%s?%s", requestConfig.Url, requestConfig.Parameters.Encode())
 }
 
 func (requestConfig *RequestConfig) SetParameter(key string, value string) {
@@ -93,11 +93,11 @@ func (requestConfig *RequestConfig) SetParameter(key string, value string) {
 	requestConfig.Parameters.Set(key, value)
 }
 
-func (service *Service) HTTPRequest(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
+func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request, *http.Response, *errortools.Error) {
 	e := new(errortools.Error)
 
 	if ig.Debug() {
-		fmt.Printf("DEBUG - FullURL\n%s\n", requestConfig.FullURL())
+		fmt.Printf("DEBUG - FullUrl\n%s\n", requestConfig.FullUrl())
 		fmt.Println("------------------------")
 		if !utilities.IsNil(requestConfig.ResponseModel) {
 			fmt.Printf("DEBUG - ResponseModel\n%T\n", requestConfig.ResponseModel)
@@ -116,8 +116,8 @@ func (service *Service) HTTPRequest(requestConfig *RequestConfig) (*http.Request
 		if requestConfig.BodyRaw != nil {
 			body = *requestConfig.BodyRaw
 		} else if utilities.IsNil(requestConfig.BodyModel) {
-			return http.NewRequest(requestConfig.Method, requestConfig.FullURL(), nil)
-		} else if service.accept == AcceptXML {
+			return http.NewRequest(requestConfig.Method, requestConfig.FullUrl(), nil)
+		} else if service.accept == AcceptXml {
 			body, err = xml.Marshal(requestConfig.BodyModel)
 		} else {
 			body, err = json.Marshal(requestConfig.BodyModel)
@@ -126,15 +126,15 @@ func (service *Service) HTTPRequest(requestConfig *RequestConfig) (*http.Request
 			return nil, err
 		}
 
-		if requestConfig.XWWWFormURLEncoded != nil {
-			if *requestConfig.XWWWFormURLEncoded {
+		if requestConfig.XWwwFormUrlEncoded != nil {
+			if *requestConfig.XWwwFormUrlEncoded {
 				tag := "json"
-				url, e := utilities.StructToURL(&requestConfig.BodyModel, &tag)
+				url, e := utilities.StructToUrl(&requestConfig.BodyModel, &tag)
 				if e != nil {
 					return nil, errors.New(e.Message())
 				}
 
-				return http.NewRequest(requestConfig.Method, requestConfig.FullURL(), strings.NewReader(*url))
+				return http.NewRequest(requestConfig.Method, requestConfig.FullUrl(), strings.NewReader(*url))
 			}
 		}
 
@@ -148,7 +148,7 @@ func (service *Service) HTTPRequest(requestConfig *RequestConfig) (*http.Request
 			}
 		}
 
-		return http.NewRequest(requestConfig.Method, requestConfig.FullURL(), bytes.NewBuffer(body))
+		return http.NewRequest(requestConfig.Method, requestConfig.FullUrl(), bytes.NewBuffer(body))
 
 	}()
 
@@ -160,7 +160,7 @@ func (service *Service) HTTPRequest(requestConfig *RequestConfig) (*http.Request
 	}
 
 	// default headers
-	if service.accept == AcceptJSON {
+	if service.accept == AcceptJson {
 		request.Header.Set("Accept", "application/json")
 		if !utilities.IsNil(requestConfig.BodyModel) {
 			request.Header.Set("Content-Type", "application/json")
@@ -177,7 +177,7 @@ func (service *Service) HTTPRequest(requestConfig *RequestConfig) (*http.Request
 		}
 	}
 
-	// Send out the HTTP request
+	// Send out the Http request
 	errortools.SetContext("http_url", request.URL)
 	defer errortools.RemoveContext("http_url")
 
@@ -223,7 +223,7 @@ func (service *Service) HTTPRequest(requestConfig *RequestConfig) (*http.Request
 				b, errToBytes := responseBodyToBytes(response)
 				if errToBytes == nil {
 					var err2 error
-					if service.accept == AcceptXML {
+					if service.accept == AcceptXml {
 						err2 = xml.Unmarshal(*b, &requestConfig.ErrorModel)
 					} else {
 						err2 = json.Unmarshal(*b, &requestConfig.ErrorModel)
@@ -244,7 +244,7 @@ func (service *Service) HTTPRequest(requestConfig *RequestConfig) (*http.Request
 				return request, response, errToBytes
 			}
 
-			if service.accept == AcceptXML {
+			if service.accept == AcceptXml {
 				err = xml.Unmarshal(*b, &requestConfig.ResponseModel)
 			} else {
 				err = json.Unmarshal(*b, &requestConfig.ResponseModel)
@@ -349,7 +349,7 @@ func (service *Service) doWithRetry(client *http.Client, request *http.Request, 
 			statusCode = 0
 		}
 
-		if ig.HTTPRetry(statusCode) && retry < _maxRetries {
+		if ig.HttpRetry(statusCode) && retry < _maxRetries {
 			retry++
 			continue
 		}
