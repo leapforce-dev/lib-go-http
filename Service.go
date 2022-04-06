@@ -41,10 +41,6 @@ type ServiceConfig struct {
 }
 
 func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
-	if serviceConfig == nil {
-		return nil, errortools.ErrorMessage("ServiceConfig must not be a nil pointer")
-	}
-
 	accept := AcceptJson
 	httpClient := http.Client{}
 
