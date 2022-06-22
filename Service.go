@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"math/rand"
@@ -105,14 +106,14 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 		}
 	}
 
-	request, err := func() (*http.Request, error) {
+	request, err := func() (*RetryableRequest, error) {
 		var body []byte
 		var err error
 
 		if requestConfig.BodyRaw != nil {
 			body = *requestConfig.BodyRaw
 		} else if utilities.IsNil(requestConfig.BodyModel) {
-			return http.NewRequest(requestConfig.Method, requestConfig.FullUrl(), nil)
+			return NewRetryableRequest(requestConfig.Method, requestConfig.FullUrl(), nil)
 		} else if service.accept == AcceptXml {
 			body, err = xml.Marshal(requestConfig.BodyModel)
 		} else {
@@ -130,7 +131,7 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 					return nil, errors.New(e.Message())
 				}
 
-				return http.NewRequest(requestConfig.Method, requestConfig.FullUrl(), strings.NewReader(*url))
+				return NewRetryableRequest(requestConfig.Method, requestConfig.FullUrl(), strings.NewReader(*url))
 			}
 		}
 
@@ -144,15 +145,14 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 			}
 		}
 
-		return http.NewRequest(requestConfig.Method, requestConfig.FullUrl(), bytes.NewBuffer(body))
-
+		return NewRetryableRequest(requestConfig.Method, requestConfig.FullUrl(), bytes.NewReader(body))
 	}()
 
-	e.SetRequest(request)
+	e.SetRequest(request.Request)
 
 	if err != nil {
 		e.SetMessage(err)
-		return request, nil, e
+		return request.Request, nil, e
 	}
 
 	// default headers
@@ -194,7 +194,7 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 	}
 
 	if response == nil {
-		return request, nil, e
+		return request.Request, nil, e
 	}
 
 	if response != nil {
@@ -211,7 +211,7 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 		}
 
 		if e != nil {
-			e.SetRequest(request)
+			e.SetRequest(request.Request)
 			e.SetResponse(response)
 
 			if !utilities.IsNil(requestConfig.ErrorModel) {
@@ -230,14 +230,14 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 				}
 			}
 
-			return request, response, e
+			return request.Request, response, e
 		}
 
 		if !utilities.IsNil(requestConfig.ResponseModel) {
 			// try to unmarshal to ResponseModel
 			b, errToBytes := responseBodyToBytes(response)
 			if errToBytes != nil {
-				return request, response, errToBytes
+				return request.Request, response, errToBytes
 			}
 
 			if service.accept == AcceptXml {
@@ -249,16 +249,16 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 				if e == nil {
 					e = new(errortools.Error)
 				}
-				e.SetRequest(request)
+				e.SetRequest(request.Request)
 				e.SetResponse(response)
 				e.SetMessage(err)
 
-				return request, response, e
+				return request.Request, response, e
 			}
 		}
 	}
 
-	return request, response, nil
+	return request.Request, response, nil
 }
 
 func responseBodyToBytes(response *http.Response) (*[]byte, *errortools.Error) {
@@ -294,9 +294,38 @@ func (service *Service) ResetRequestCount() {
 	service.requestCount = 0
 }
 
+type RetryableRequest struct {
+	body io.ReadSeeker
+	*http.Request
+}
+
+func NewRetryableRequest(method, url string, body io.ReadSeeker) (*RetryableRequest, error) {
+	var rcBody io.ReadCloser
+	if body != nil {
+		rcBody = ioutil.NopCloser(body)
+	}
+
+	req, err := http.NewRequest(method, url, rcBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RetryableRequest{body, req}, nil
+}
+
+func (r *RetryableRequest) Do(client *http.Client) (*http.Response, error) {
+	if r.body != nil {
+		if _, err := r.body.Seek(0, 0); err != nil {
+			return nil, fmt.Errorf("failed to seek body: %v", err)
+		}
+	}
+
+	return client.Do(r.Request)
+}
+
 // doWithRetry executes http.Request and retries in case of 500 range status code
 // see: https://developers.google.com/analytics/devguides/config/mgmt/v3/errors#handling_500_or_503_responses
-func (service *Service) doWithRetry(client *http.Client, request *http.Request, maxRetries *uint) (*http.Response, *errortools.Error) {
+func (service *Service) doWithRetry(client *http.Client, request *RetryableRequest, maxRetries *uint) (*http.Response, *errortools.Error) {
 	if client == nil || request == nil {
 		if ig.Debug() {
 			if client == nil {
@@ -327,7 +356,8 @@ func (service *Service) doWithRetry(client *http.Client, request *http.Request, 
 			time.Sleep(time.Duration(waitSeconds)*time.Second + time.Duration(waitMilliseconds)*time.Millisecond)
 		}
 
-		response, err := client.Do(request)
+		response, err := request.Do(client)
+		//response, err := client.Do(request.Request)
 		if ig.Debug() {
 			if err != nil {
 				fmt.Printf("DEBUG - client.Do - error\n%s\n", err.Error())
@@ -351,12 +381,12 @@ func (service *Service) doWithRetry(client *http.Client, request *http.Request, 
 		}
 
 		if err == nil && (statusCode/100 == 4 || statusCode/100 == 5) {
-			err = fmt.Errorf("Server returned statuscode %v", statusCode)
+			err = fmt.Errorf("server returned statuscode %v", statusCode)
 		}
 
 		if err != nil {
 			e := new(errortools.Error)
-			e.SetRequest(request)
+			e.SetRequest(request.Request)
 			e.SetResponse(response)
 			e.SetMessage(err.Error())
 
