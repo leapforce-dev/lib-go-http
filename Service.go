@@ -147,13 +147,12 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 
 		return NewRetryableRequest(requestConfig.Method, requestConfig.FullUrl(), bytes.NewReader(body))
 	}()
-
-	e.SetRequest(request.Request)
-
 	if err != nil {
 		e.SetMessage(err)
-		return request.Request, nil, e
+		return nil, nil, e
 	}
+
+	e.SetRequest(request.Request)
 
 	// default headers
 	if service.accept == AcceptJson {
