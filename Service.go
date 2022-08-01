@@ -312,11 +312,20 @@ func NewRetryableRequest(method, url string, body io.ReadSeeker) (*RetryableRequ
 	return &RetryableRequest{body, req}, nil
 }
 
-func (r *RetryableRequest) Do(client *http.Client) (*http.Response, error) {
+func (r *RetryableRequest) SeekBody() error {
 	if r.body != nil {
 		if _, err := r.body.Seek(0, 0); err != nil {
-			return nil, fmt.Errorf("failed to seek body: %v", err)
+			return fmt.Errorf("failed to seek body: %v", err)
 		}
+	}
+
+	return nil
+}
+
+func (r *RetryableRequest) Do(client *http.Client) (*http.Response, error) {
+	err := r.SeekBody()
+	if err != nil {
+		return nil, err
 	}
 
 	return client.Do(r.Request)
@@ -385,6 +394,12 @@ func (service *Service) doWithRetry(client *http.Client, request *RetryableReque
 
 		if err != nil {
 			e := new(errortools.Error)
+
+			// make body re-readable for error logging
+			err1 := request.SeekBody()
+			if err1 != nil {
+				errortools.CaptureErrorf("error while seeking body: %s", err1.Error())
+			}
 			e.SetRequest(request.Request)
 			e.SetResponse(response)
 			e.SetMessage(err.Error())
