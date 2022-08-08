@@ -314,7 +314,10 @@ func NewRetryableRequest(method, url string, reader io.Reader) (*RetryableReques
 		body = b
 	}
 
-	req, err := http.NewRequest(method, url, nil)
+	// although the body of http.Request will be set upon each call of Do
+	// we initialize it here with bytes.NewReader(body) because http.NewRequest
+	// initializes the GetBody function based on this.
+	req, err := http.NewRequest(method, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
