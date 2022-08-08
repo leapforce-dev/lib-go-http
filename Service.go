@@ -297,8 +297,8 @@ func (service *Service) ResetRequestCount() {
 }
 
 type RetryableRequest struct {
-	body []byte
-	//body io.ReadSeeker
+	body     []byte
+	runCount int
 	*http.Request
 }
 
@@ -314,23 +314,21 @@ func NewRetryableRequest(method, url string, reader io.Reader) (*RetryableReques
 		body = b
 	}
 
-	// although the body of http.Request will be set upon each call of Do
-	// we initialize it here with bytes.NewReader(body) because http.NewRequest
-	// initializes the GetBody function based on this.
 	req, err := http.NewRequest(method, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
 
-	return &RetryableRequest{body, req}, nil
+	return &RetryableRequest{body, 0, req}, nil
 }
 
 func (r *RetryableRequest) Do(client *http.Client) (*http.Response, error) {
-	if r.body != nil {
+	if r.runCount > 0 && r.body != nil {
 		reader := bytes.NewReader(r.body)
 		readCloser := io.NopCloser(reader)
 		r.Request.Body = readCloser
 	}
+	r.runCount++
 
 	return client.Do(r.Request)
 }
