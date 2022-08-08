@@ -3,7 +3,7 @@ module github.com/leapforce-libraries/go_http
 go 1.18
 
 require (
-	github.com/leapforce-libraries/go_errortools v0.0.0-20220801162601-6224cce8469e
+	github.com/leapforce-libraries/go_errortools v0.0.0-20220808170134-6bf8d8106f1b
 	github.com/leapforce-libraries/go_integration v0.0.0-20220801142518-7b4fe1b429bb
 	github.com/leapforce-libraries/go_utilities v0.0.0-20220801142226-648cef94346e
 )

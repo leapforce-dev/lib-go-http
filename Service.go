@@ -153,6 +153,7 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 	}
 
 	e.SetRequest(request.Request)
+	e.SetBody(request.body)
 
 	// default headers
 	if service.accept == AcceptJson {
@@ -211,6 +212,7 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 
 		if e != nil {
 			e.SetRequest(request.Request)
+			e.SetBody(request.body)
 			e.SetResponse(response)
 
 			if !utilities.IsNil(requestConfig.ErrorModel) {
@@ -249,6 +251,7 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 					e = new(errortools.Error)
 				}
 				e.SetRequest(request.Request)
+				e.SetBody(request.body)
 				e.SetResponse(response)
 				e.SetMessage(err)
 
@@ -294,17 +297,24 @@ func (service *Service) ResetRequestCount() {
 }
 
 type RetryableRequest struct {
-	body io.ReadSeeker
+	body []byte
+	//body io.ReadSeeker
 	*http.Request
 }
 
-func NewRetryableRequest(method, url string, body io.ReadSeeker) (*RetryableRequest, error) {
-	var rcBody io.ReadCloser
-	if body != nil {
-		rcBody = ioutil.NopCloser(body)
+func NewRetryableRequest(method, url string, reader io.Reader) (*RetryableRequest, error) {
+	var body []byte = nil
+
+	if reader != nil {
+		b, err := ioutil.ReadAll(reader)
+		if err != nil {
+			return nil, err
+		}
+
+		body = b
 	}
 
-	req, err := http.NewRequest(method, url, rcBody)
+	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -312,20 +322,11 @@ func NewRetryableRequest(method, url string, body io.ReadSeeker) (*RetryableRequ
 	return &RetryableRequest{body, req}, nil
 }
 
-func (r *RetryableRequest) SeekBody() error {
-	if r.body != nil {
-		if _, err := r.body.Seek(0, 0); err != nil {
-			return fmt.Errorf("failed to seek body: %v", err)
-		}
-	}
-
-	return nil
-}
-
 func (r *RetryableRequest) Do(client *http.Client) (*http.Response, error) {
-	err := r.SeekBody()
-	if err != nil {
-		return nil, err
+	if r.body != nil {
+		reader := bytes.NewReader(r.body)
+		readCloser := io.NopCloser(reader)
+		r.Request.Body = readCloser
 	}
 
 	return client.Do(r.Request)
@@ -396,11 +397,8 @@ func (service *Service) doWithRetry(client *http.Client, request *RetryableReque
 			e := new(errortools.Error)
 
 			// make body re-readable for error logging
-			err1 := request.SeekBody()
-			if err1 != nil {
-				errortools.CaptureErrorf("error while seeking body: %s", err1.Error())
-			}
 			e.SetRequest(request.Request)
+			e.SetBody(request.body)
 			e.SetResponse(response)
 			e.SetMessage(err.Error())
 
