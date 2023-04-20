@@ -390,6 +390,13 @@ func (service *Service) doWithRetry(client *http.Client, request *RetryableReque
 			continue
 		}
 
+		if err != nil {
+			if strings.Contains(strings.ToLower(err.Error()), "tls handshake timeout") {
+				retry++
+				continue
+			}
+		}
+
 		if err == nil && (statusCode/100 == 4 || statusCode/100 == 5) {
 			err = fmt.Errorf("server returned statuscode %v", statusCode)
 		}
