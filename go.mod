@@ -1,11 +1,11 @@
-module github.com/leapforce-dev/lib-go-http
+module github.com/leapforce-libraries/go_http
 
 go 1.22
 
 require (
-	github.com/leapforce-dev/lib-go-errortools v0.0.0-20241029164741-68975aaea68b
-	github.com/leapforce-dev/lib-go-utilities v0.0.0-20241029213335-66960e763196
+	github.com/leapforce-libraries/go_errortools v0.0.0-20241029220115-b5c993a285b0
 	github.com/leapforce-libraries/go_integration v0.0.0-20240624134401-b6bd19ab844e
+	github.com/leapforce-libraries/go_utilities v0.0.0-20241029220807-423a5ce67c7e
 )
 
 require (
@@ -31,11 +31,9 @@ require (
 	github.com/googleapis/gax-go/v2 v2.13.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
-	github.com/leapforce-libraries/go_errortools v0.0.0-20230306211452-9ccee0cdafe8 // indirect
 	github.com/leapforce-libraries/go_google v0.0.0-20240112120231-44746007e34d // indirect
 	github.com/leapforce-libraries/go_googlecloudstorage v0.0.0-20230621111300-7ee17b7a4982 // indirect
 	github.com/leapforce-libraries/go_types v0.0.0-20230425074203-34c9cae0aa4e // indirect
-	github.com/leapforce-libraries/go_utilities v0.0.0-20231230132229-bc4b067dab74 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	go.opencensus.io v0.24.0 // indirect

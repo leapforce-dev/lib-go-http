@@ -86,12 +86,8 @@ github.com/klauspost/compress v1.17.7 h1:ehO88t2UGzQK66LMdE8tibEd1ErmzZjNEqWkjLA
 github.com/klauspost/compress v1.17.7/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
 github.com/klauspost/cpuid/v2 v2.2.5 h1:0E5MSMDEoAulmXNFquVs//DdoomxaoTY1kUhbc/qbZg=
 github.com/klauspost/cpuid/v2 v2.2.5/go.mod h1:Lcz8mBdAVJIBVzewtcLocK12l3Y+JytZYpaMropDUws=
-github.com/leapforce-dev/lib-go-errortools v0.0.0-20241029164741-68975aaea68b h1:DizIPffulvI6UY4PqjhoDVUql0zMGQzEcuAYSbccHfI=
-github.com/leapforce-dev/lib-go-errortools v0.0.0-20241029164741-68975aaea68b/go.mod h1:eX+j7iL9ci68iuGDrr1UEONpUaHKrlGObWqxEZ3mj4g=
-github.com/leapforce-dev/lib-go-utilities v0.0.0-20241029213335-66960e763196 h1:4/BtRVHCOFFw+FXkbihNaLJ9EFr6wRRzJSfstoFvEgU=
-github.com/leapforce-dev/lib-go-utilities v0.0.0-20241029213335-66960e763196/go.mod h1:KKNNiOPhNSl91chf/bHEaYE6EXY/nyeywRH7j2OEtmA=
-github.com/leapforce-libraries/go_errortools v0.0.0-20230306211452-9ccee0cdafe8 h1:mk7IsGbGLmnskY2uF4Vhsndnvv/yEtXW4kf8mgv39EQ=
-github.com/leapforce-libraries/go_errortools v0.0.0-20230306211452-9ccee0cdafe8/go.mod h1:Dohd/6JCzEyLpngEdzbDKZ54gu2n0lKd0dsV8BgjczU=
+github.com/leapforce-libraries/go_errortools v0.0.0-20241029220115-b5c993a285b0 h1:x1KmrNhp7y8nG+8HNX/eKsA2Q8etDzk1JTmsWvGzis0=
+github.com/leapforce-libraries/go_errortools v0.0.0-20241029220115-b5c993a285b0/go.mod h1:ytvUwp/lSpq5yhKSQf8nilA8BKz0uCG0WAr6q55o/7g=
 github.com/leapforce-libraries/go_google v0.0.0-20240112120231-44746007e34d h1:Ci4rFZOwdi1dVObucJsOD9UVAkEbuirmMO5Y2ITxGpY=
 github.com/leapforce-libraries/go_google v0.0.0-20240112120231-44746007e34d/go.mod h1:4LbM4uCb8lDR6sXQm2aimAboGCDXSH0hbexUwq4kfuc=
 github.com/leapforce-libraries/go_googlecloudstorage v0.0.0-20230621111300-7ee17b7a4982 h1:cORrIV+HAYk5TSKIWS49bK384ZydyYMuWYk2p8NH4uU=
@@ -100,8 +96,8 @@ github.com/leapforce-libraries/go_integration v0.0.0-20240624134401-b6bd19ab844e
 github.com/leapforce-libraries/go_integration v0.0.0-20240624134401-b6bd19ab844e/go.mod h1:4IZ0N7gLFjrFpVvdDciMj4ybywzk2xqxk79nTArAjRk=
 github.com/leapforce-libraries/go_types v0.0.0-20230425074203-34c9cae0aa4e h1:77VkZu4xDKBjnsD4DNGleoInlBs+8CNfaeHXU2S8E8o=
 github.com/leapforce-libraries/go_types v0.0.0-20230425074203-34c9cae0aa4e/go.mod h1:u3a04cSiTbrvyXaf4F4PFaX67f94t4/bRWGFZrYChC8=
-github.com/leapforce-libraries/go_utilities v0.0.0-20231230132229-bc4b067dab74 h1:NF5ikZZ3qBgWmHXbP3wsv9UgxHzzxXM/7ozJzBI4xdw=
-github.com/leapforce-libraries/go_utilities v0.0.0-20231230132229-bc4b067dab74/go.mod h1:tBVGQwS5TnkNZky6Z+hgurxYQwUPh6m41G2H3Ffzv9U=
+github.com/leapforce-libraries/go_utilities v0.0.0-20241029220807-423a5ce67c7e h1:s0I1mpVL/HtR1CKC8b8E9ZDuTwZ+xBpeeOlbaQ6x5pc=
+github.com/leapforce-libraries/go_utilities v0.0.0-20241029220807-423a5ce67c7e/go.mod h1:tcdXHjEmZpaK/kUdGScj/5xeAOMB6UplhwYbrB9ZFPw=
 github.com/pierrec/lz4/v4 v4.1.18 h1:xaKrnTkyoqfh1YItXl56+6KJNVYWlEEPuAQW9xsplYQ=
 github.com/pierrec/lz4/v4 v4.1.18/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
 github.com/pingcap/errors v0.11.4 h1:lFuQV/oaUMGcD2tqt+01ROSmJs75VG1ToEOkZIZ4nE4=
