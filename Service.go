@@ -6,6 +6,9 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	errortools "github.com/leapforce-dev/lib-go-errortools"
+	utilities "github.com/leapforce-dev/lib-go-utilities"
+	ig "github.com/leapforce-libraries/go_integration"
 	"io"
 	"io/ioutil"
 	"math"
@@ -14,10 +17,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
-	errortools "github.com/leapforce-libraries/go_errortools"
-	ig "github.com/leapforce-libraries/go_integration"
-	utilities "github.com/leapforce-libraries/go_utilities"
 )
 
 const defaultMaxRetries uint = 5
