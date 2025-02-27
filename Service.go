@@ -38,6 +38,7 @@ type Service struct {
 type ServiceConfig struct {
 	Accept     *Accept
 	HttpClient *http.Client
+	ProxyUrl   *string
 }
 
 func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
@@ -50,6 +51,14 @@ func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
 		}
 		if serviceConfig.HttpClient != nil {
 			httpClient = *serviceConfig.HttpClient
+		}
+
+		if serviceConfig.ProxyUrl == nil {
+			proxyUrl, err := url.Parse(*serviceConfig.ProxyUrl)
+			if err != nil {
+				return nil, errortools.ErrorMessage(err)
+			}
+			httpClient.Transport = &http.Transport{Proxy: http.ProxyURL(proxyUrl)}
 		}
 	}
 
