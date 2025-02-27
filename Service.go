@@ -53,7 +53,7 @@ func NewService(serviceConfig *ServiceConfig) (*Service, *errortools.Error) {
 			httpClient = *serviceConfig.HttpClient
 		}
 
-		if serviceConfig.ProxyUrl == nil {
+		if serviceConfig.ProxyUrl != nil {
 			proxyUrl, err := url.Parse(*serviceConfig.ProxyUrl)
 			if err != nil {
 				return nil, errortools.ErrorMessage(err)
