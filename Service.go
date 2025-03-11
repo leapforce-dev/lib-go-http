@@ -173,11 +173,20 @@ func (service *Service) HttpRequest(requestConfig *RequestConfig) (*http.Request
 
 	// overrule with input headers
 	if requestConfig.NonDefaultHeaders != nil {
+		if ig.Debug() {
+			fmt.Println("DEBUG - NonDefaultHeaders")
+		}
 		for key, values := range *requestConfig.NonDefaultHeaders {
 			request.Header.Del(key) //delete old header
 			for _, value := range values {
 				request.Header.Add(key, value) //add new header(s)
+				if ig.Debug() {
+					fmt.Printf("%s : %s\n", key, value)
+				}
 			}
+		}
+		if ig.Debug() {
+			fmt.Println("------------------------")
 		}
 	}
 
